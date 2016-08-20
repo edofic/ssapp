@@ -1,0 +1,42 @@
+name:                ssb
+version:             0.1.0.0
+synopsis:            Initial project template from stack
+description:         Please see README.md
+license:             BSD3
+license-file:        LICENSE
+author:              Andraz Bajt
+maintainer:          edofic@edofic.com
+copyright:           2016 Andraz Bajt
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Lib
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
+
+executable ssb-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , ssb
+                     , bytestring
+                     , http-types
+                     , text
+                     , wai
+                     , wai-websockets
+                     , warp
+                     , websockets
+  default-language:    Haskell2010
+
+test-suite ssb-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , ssb
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
