@@ -43,9 +43,13 @@ demoApp = SSApp init handleMsg reduce render where
     Input value -> SetText value
 
   reduce action state emit = case action of
-    UpdateButton -> return state{btnMsg = "No more clicking!"}
     Bump -> return state{counter = counter state + 1}
     SetText newText -> return state{text = newText}
+    UpdateButton -> do
+      forkIO $ do
+        threadDelay 1000000
+        emit $ SetText "Delayed effect"
+      return state{btnMsg = "No more clicking!"}
 
   render AppState{..} = H.div $ do
     H.div $ "Step " >> H.string (show counter)
