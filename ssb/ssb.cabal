@@ -24,6 +24,7 @@ executable ssb-exe
   build-depends:       base
                      , ssb
                      , aeson
+                     , blaze-html
                      , bytestring
                      , http-types
                      , text

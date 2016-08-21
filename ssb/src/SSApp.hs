@@ -3,10 +3,12 @@
 module SSApp where
 
 import Control.Concurrent (newChan, writeChan, readChan, forkIO)
-import Data.Aeson
 import Control.Monad (forever)
+import Data.Aeson
 import Data.IORef (newIORef, writeIORef, readIORef)
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.ByteString.Lazy as LBS
+import qualified Text.Blaze.Html as H
 
 data SSApp state action msg repr =
      SSApp { init :: (action -> IO ()) -> IO state
@@ -37,3 +39,11 @@ withJsonEvents app = app{handleMsg=handleMsg'} where
   handleMsg' rawMsg emit = case decode rawMsg of
     Nothing  -> putStrLn $ "Unknown msg received: " ++ show rawMsg
     Just msg -> handleMsg app msg emit
+
+withHtmlRendering :: SSApp state action msg H.Html ->
+                     SSApp state action msg LBS.ByteString
+withHtmlRendering app = app{render=render'} where
+  render' state = renderHtml $ render app state
+
+emit :: String -> H.AttributeValue
+emit body = H.preEscapedStringValue $ "emit(" ++ body ++ ")"
