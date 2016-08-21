@@ -11,7 +11,7 @@ import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.WebSockets as WS
 
-import SSApp (runSSApp)
+import SSApp (runSSApp, withJsonEvents)
 import DemoApp (demoApp)
 
 main :: IO ()
@@ -23,11 +23,9 @@ app = websocketsOr WS.defaultConnectionOptions wsApp backupApp
     wsApp :: WS.ServerApp
     wsApp pending_conn = do
         conn <- WS.acceptRequest pending_conn
-        let receive :: IO Text.Text
-            receive = WS.receiveData conn
-            send :: Text.Text -> IO ()
+        let receive = WS.receiveData conn
             send = WS.sendTextData conn
-        runSSApp receive send demoApp
+        runSSApp receive send $ withJsonEvents demoApp
 
     backupApp :: Wai.Application
     backupApp request send = send res where

@@ -39,9 +39,8 @@ const connect = () => {
 connect();
 
 
-window.emit = function() {
-  const args = Array.apply(undefined, arguments);
-  const data = JSON.stringify(args);
+window.emit = function(data) {
+  data = JSON.stringify(data);
   socket.send(data);
   console.log('emit', data);
 }
