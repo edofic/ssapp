@@ -50,5 +50,8 @@ demoApp = SSApp init handleMsg reduce render where
     "<div>Step " ++ show counter ++ "</div>" ++
     "<input type='text' oninput=\"emit({tag: 'Input', value: this.value})\"/>"++
     "<button onclick=\"emit({tag: 'Click', contents: []})\">" ++ btnMsg ++ "</button>" ++
-    "<div>Text: " ++ text ++ "</div>" ++
+    "<div style=\"transition: margin-top 1s ease; margin-top: " ++ margin ++ "px;\">" ++
+    "Text: " ++ text ++ "</div>" ++
     "</div>"
+    where
+    margin = if counter `mod` 2 == 0 then "0" else "100"
