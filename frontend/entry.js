@@ -42,5 +42,4 @@ connect();
 window.emit = function(data) {
   data = JSON.stringify(data);
   socket.send(data);
-  console.log('emit', data);
 }
