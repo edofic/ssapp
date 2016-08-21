@@ -30,7 +30,7 @@ data Event = Click
 instance FromJSON Event
 instance ToJSON Event
 
-demoApp :: SSApp AppState Action Event H.Html
+demoApp :: SSApp IO AppState Action Event H.Html
 demoApp = SSApp init handleMsg reduce render where
   init emit = do
     forkIO $ forever $ do
