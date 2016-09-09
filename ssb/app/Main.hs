@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
@@ -26,14 +25,10 @@ app = websocketsOr WS.defaultConnectionOptions wsApp backupApp
         let receive = WS.receiveData conn
             send = WS.sendTextData conn
         runSSApp receive send $
-          withJsonEvents $ withHtmlRendering demoApp
+          withJsonEvents . withHtmlRendering <$> demoApp
 
     backupApp :: Wai.Application
     backupApp request send = send res where
       res = Wai.responseLBS status400 [] "Not a WebSocket request"
-
-
-
-
 
 

@@ -15,6 +15,10 @@ library
   hs-source-dirs:      src
   exposed-modules:     SSApp
   build-depends:       base >= 4.7 && < 5
+                     , transformers
+                     , aeson
+                     , blaze-html
+                     , bytestring
   default-language:    Haskell2010
 
 executable ssb-exe
@@ -25,6 +29,7 @@ executable ssb-exe
                      , ssb
                      , aeson
                      , blaze-html
+                     , transformers
                      , bytestring
                      , http-types
                      , text
