@@ -12,6 +12,7 @@ import qualified Network.WebSockets as WS
 
 import SSApp (runSSApp, withJsonEvents, withHtmlRendering)
 import DemoApp (demoApp)
+import TodoApp (todoApp)
 
 main :: IO ()
 main = Warp.run 3000 app
@@ -25,7 +26,7 @@ app = websocketsOr WS.defaultConnectionOptions wsApp backupApp
         let receive = WS.receiveData conn
             send = WS.sendTextData conn
         runSSApp receive send $
-          withJsonEvents . withHtmlRendering <$> demoApp
+          withJsonEvents . withHtmlRendering <$> todoApp
 
     backupApp :: Wai.Application
     backupApp request send = send res where
