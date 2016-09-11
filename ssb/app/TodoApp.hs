@@ -26,6 +26,7 @@ data AppState = AppState { newTodo :: String
 data Action = UpdateTodoInput String
             | SaveNewTodo
             | DestroyTodo Integer
+            | ToggleTodo Integer
             deriving (Eq, Show)
 
 data Event = EInput { value :: String }
@@ -51,9 +52,12 @@ todoApp = return $ SSApp initialState handleMsg reduce render where
                 EKeyUp code -> if code == "Enter"
                                then emitEv SaveNewTodo
                                else return ()
-                EClick action -> if (take 8 action) == "destroy-"
-                                 then emitEv (DestroyTodo $ read $ drop 8 action)
-                                 else return ()
+                EClick action
+                  | take 8 action == "destroy-" ->
+                      emitEv (DestroyTodo $ read $ drop 8 action)
+                  | take 7 action == "toggle-" ->
+                      emitEv (ToggleTodo $ read $ drop 7 action)
+                  | otherwise -> return ()
 
 
   reduce (UpdateTodoInput value) state = return $ state { newTodo = value }
@@ -67,6 +71,11 @@ todoApp = return $ SSApp initialState handleMsg reduce render where
   reduce (DestroyTodo tid) state = let newEntries = filter p $ entries state
                                        p (TodoItem { tid = tid' }) = tid /= tid'
                                    in  return $ state { entries = newEntries }
+  reduce (ToggleTodo tid) state = let newEntries = map f $ entries state
+                                      f i@(TodoItem { tid = tid' })
+                                        | tid' == tid = i { isDone = not (isDone i) }
+                                        | otherwise   = i
+                                  in  return $ state { entries = newEntries }
 
   render AppState{..} = do
     H.div H.! HA.class_ "todomvc-wrapper" $ do
@@ -85,9 +94,10 @@ todoApp = return $ SSApp initialState handleMsg reduce render where
           H.label H.! HA.for "toggle-all" $ "Mark all as complete"
           H.ul H.! HA.id "todo-list" $ forM_ entries $ \entry -> do
             H.li $ H.div H.! HA.class_ "view" $ do
-              H.input H.! HA.class_ "toggle"
-                      H.! HA.type_ "checkbox"
-                      H.! HA.checked (if isDone entry then "true" else "false")
+              let checkedClass = if isDone entry then "checked" else ""
+              H.div H.! HA.class_ (H.stringValue $ "toggle " ++ checkedClass)
+                    H.! HA.onclick (emit $ "{tag: 'EClick', value: 'toggle-" ++ show (tid entry) ++ "'}")
+                    $ ""
               H.label $ H.string $ text entry
               H.button H.! HA.class_ "destroy"
                        H.! HA.onclick (emit $ "{tag: 'EClick', value: 'destroy-" ++ show (tid entry) ++ "'}")
@@ -104,9 +114,9 @@ todoApp = return $ SSApp initialState handleMsg reduce render where
                      H.! HA.id "clear-completed"
                      $ "Clear completed"
       H.footer H.! HA.id "info" $ do
-        H.p $ do
-          "Written by "
-          H.a H.! HA.href "https://github.com/edofic" $ "Andraž Bajt"
-        H.p $ do
-          "Example for "
-          H.a H.! HA.href "http://todomvc.com" $ "TodoMVC"
+        H.p $
+          "Written by " >>
+          (H.a H.! HA.href "https://github.com/edofic" $ "Andraž Bajt")
+        H.p $
+          "Example for " >>
+          (H.a H.! HA.href "http://todomvc.com" $ "TodoMVC")
