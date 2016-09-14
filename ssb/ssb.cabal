@@ -29,10 +29,10 @@ executable ssb-exe
                      , ssb
                      , aeson
                      , blaze-html
-                     , transformers
                      , bytestring
                      , http-types
                      , text
+                     , transformers
                      , wai
                      , wai-websockets
                      , warp

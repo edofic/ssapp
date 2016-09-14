@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module SSApp where
 
@@ -10,9 +11,12 @@ import Control.Monad (forever)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Data.Aeson
+import Data.Aeson.Types (unsafeToEncoding)
+import Data.Functor.Identity
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
+import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as LBS
-import qualified Text.Blaze.Html as H
+import qualified Text.Blaze.Html5 as H
 
 class (Monad m) => MonadEmit e n m | m -> n where
   emitter :: m (e -> n ())
@@ -37,7 +41,7 @@ runSSApp receive send mapp = do
   queue <- liftIO newChan
   let emit ev = liftIO $ writeChan queue (Right ev)
 
-  liftIO $ forkIO $ forever $ do
+  _ <- liftIO $ forkIO $ forever $ do
     msg <- receive
     writeChan queue $ Left msg
 
@@ -59,10 +63,24 @@ withJsonEvents app = app{handleMsg=handleMsg'} where
     Nothing  -> liftIO $ putStrLn $ "Unknown msg received: " ++ show rawMsg
     Just msg -> handleMsg app msg
 
-withHtmlRendering :: SSApp m state action msg H.Html ->
-                     SSApp m state action msg LBS.ByteString
-withHtmlRendering app = app{render=render'} where
-  render' state = renderHtml $ render app state
 
-emit :: String -> H.AttributeValue
-emit body = H.preEscapedStringValue $ "emit(" ++ body ++ ")"
+type EventfulHTML msg = (msg -> H.AttributeValue) -> H.Html
+
+type HtmlApp m state action msg = SSApp m state action (msg Identity) (EventfulHTML (msg Code))
+
+withHtmlRendering :: ToJSON (msg Code) => HtmlApp m state action msg  ->
+                     SSApp m state action (msg Identity) LBS.ByteString
+withHtmlRendering app = app{render=render'} where
+  render' state = renderHtml $ render app state act
+  act = H.unsafeLazyByteStringValue . LBS.map f . wrap . encode where
+    f 34 = 39
+    f c  = c
+    wrap bs = mconcat ["emit(", bs, ")"]
+
+
+newtype Code action = Code { showCode :: LBS.ByteString }
+                           deriving (Eq, Show)
+
+instance ToJSON (Code action) where
+  toJSON = error "NOT IMPLEMENTED: Code toJSON, use toEncoding"
+  toEncoding (Code lbs) = unsafeToEncoding $ BSB.lazyByteString lbs
